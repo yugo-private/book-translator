@@ -1,0 +1,143 @@
+[
+    {
+    "source": "Артём",
+    "target": "Tommy",
+    "type": "name",
+    "case_sensitive": true,
+    "scope": "always",
+    "note": "главный герой, мальчик; заменить на знакомое американское имя",
+    "localization": "replace_global",
+    "usage": "Tommy"
+    },
+    {
+    "source": "Катя",
+    "target": "Katie",
+    "type": "name",
+    "case_sensitive": true,
+    "scope": "always",
+    "note": "подруга Артёма; уменьшительное имя",
+    "localization": "replace_global",
+    "usage": "Katie"
+    },
+    {
+    "source": "Людмила Петровна",
+    "target": "Grandma Lily",
+    "type": "name",
+    "case_sensitive": true,
+    "scope": "always",
+    "note": "бабушка; упрощено для американской аудитории",
+    "localization": "replace_global",
+    "usage": "Grandma Lily"
+    },
+    {
+    "source": "Пётр Иванович",
+    "target": "Mr. Pierce",
+    "type": "name",
+    "case_sensitive": true,
+    "scope": "always",
+    "note": "взрослый формальный персонаж; сохранить дистанцию",
+    "localization": "replace_global",
+    "usage": "Mr. Pierce"
+    },
+    {
+    "source": "Сергей Михайлович",
+    "target": "Mr. Henry",
+    "type": "name",
+    "case_sensitive": true,
+    "scope": "always",
+    "note": "взрослый персонаж",
+    "localization": "replace_global",
+    "usage": "Mr. Henry"
+    },
+    {
+    "source": "Пинтек",
+    "target": "Pintek",
+    "type": "creature/name",
+    "case_sensitive": true,
+    "scope": "always",
+    "note": "уникальное существо — оставить как бренд",
+    "localization": "keep_native",
+    "usage": "Pintek"
+    },
+    {
+    "source": "Кобы",
+    "target": "Kobs",
+    "type": "creature",
+    "case_sensitive": false,
+    "scope": "always",
+    "note": "маленькие стражи; множественное число — Kobs",
+    "localization": "keep_native",
+    "usage": "Kobs"
+    },
+    {
+    "source": "Ракодинозавр",
+    "target": "Rakodinosaur",
+    "type": "creature",
+    "case_sensitive": false,
+    "scope": "always",
+    "note": "враждебные существа; plural: Rakodinosaurs",
+    "localization": "keep_native",
+    "usage": "Rakodinosaur / Rakodinosaurs"
+    },
+    {
+    "source": "Флютка",
+    "target": "Flutka",
+    "type": "creature/name",
+    "case_sensitive": true,
+    "scope": "always",
+    "note": "мягкое имя существа — не переводить",
+    "localization": "keep_native",
+    "usage": "Flutka"
+    },
+    {
+    "source": "синяя тетрадь",
+    "target": "the Blue Notebook",
+    "type": "artifact",
+    "case_sensitive": false,
+    "scope": "always",
+    "note": "название артефакта — capitalized as proper name",
+    "localization": "replace_global",
+    "usage": "the Blue Notebook"
+    },
+    {
+    "source": "Дом Цветочной Поляны",
+    "target": "Flower Glade House",
+    "type": "place",
+    "case_sensitive": false,
+    "scope": "always",
+    "note": "топоним — образный перевод",
+    "localization": "replace_global",
+    "usage": "Flower Glade House"
+    },
+    {
+    "source": "Мир зелёного солнца",
+    "target": "the Green World",
+    "type": "place",
+    "case_sensitive": false,
+    "scope": "always",
+    "note": "альтернативный мир — понятное название для детей",
+    "localization": "replace_global",
+    "usage": "the Green World"
+    },
+    {
+    "source": "слёзы Камня",
+    "target": "Tears of the Stone",
+    "type": "artifact",
+    "case_sensitive": false,
+    "scope": "always",
+    "note": "магический эликсир — поэтичное название",
+    "localization": "replace_global",
+    "usage": "Tears of the Stone"
+    },
+    {
+    "source": "сверлитки",
+    "target": "drillbirds",
+    "type": "creature",
+    "case_sensitive": false,
+    "scope": "always",
+    "note": "птицы с носами-сверлами — понятная адаптация",
+    "localization": "replace_global",
+    "usage": "drillbirds"
+    }
+    ]
+    

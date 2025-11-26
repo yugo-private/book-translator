@@ -1,0 +1,30 @@
+# Скопируйте этот файл в .env и заполните ваши API ключи
+# Команда: cp env_template.txt .env
+
+# ============================================
+# ОБЯЗАТЕЛЬНЫЕ КЛЮЧИ (минимум один MT + один LLM)
+# ============================================
+
+# MT Systems (Машинный перевод) - нужен хотя бы один
+DEEPL_API_KEY=your_deepl_api_key_here          # РЕКОМЕНДУЕТСЯ: лучший для художественных текстов
+GOOGLE_API_KEY=your_google_api_key_here         # Опционально
+GOOGLE_PROJECT_ID=your_google_project_id_here  # Опционально (только если используете Google)
+YANDEX_API_KEY=your_yandex_api_key_here         # Опционально
+
+# LLM Systems (Для улучшения перевода) - нужен хотя бы один
+OPENAI_API_KEY=your_openai_api_key_here         # РЕКОМЕНДУЕТСЯ: GPT-4 для лучшего качества
+DEEPSEEK_API_KEY=your_deepseek_api_key_here    # РЕКОМЕНДУЕТСЯ: экономичная альтернатива
+
+# ============================================
+# ОПЦИОНАЛЬНЫЕ КЛЮЧИ (можно добавить позже)
+# ============================================
+ANTHROPIC_API_KEY=your_anthropic_api_key_here   # Claude - платный, есть бесплатный кредит
+GROK_API_KEY=your_grok_api_key_here            # Grok - платный, требуется доступ
+CROK_API_KEY=your_crok_api_key_here            # Crok - если есть доступ
+
+# Настройки по умолчанию
+DEFAULT_MT_ENGINE=deepl
+DEFAULT_LLM_ENGINE=gpt4
+LLM_TEMPERATURE=0.7
+LLM_MAX_TOKENS=4000
+

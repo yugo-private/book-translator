@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Output files (переводы не коммитим)
+Output/
+*.docx
+!Input/*.docx
+
+# Translation Memory (может быть большим)
+translation_memory.json
+
+# Logs and reports
+*.log
+*_report.txt
+comparison_log.txt
+quality_comparison_report.txt
+llm_comparison_report.txt
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Glossaries (можно коммитить, но закомментировано для безопасности)
+# glossary.json
+
