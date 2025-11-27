@@ -232,7 +232,7 @@ class GrokPostEditor(LLMPostEditor):
             system_prompt = self._create_system_prompt()
             
             response = client.chat.completions.create(
-                model="grok-beta",  # или "grok-2" в зависимости от доступных моделей
+                model="grok-3",  # Актуальная модель (grok-beta deprecated)
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
