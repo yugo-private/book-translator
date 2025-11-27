@@ -1,18 +1,63 @@
 """
 Модуль Translation Memory (TM) для сохранения и повторного использования переводов.
 Полезно для обеспечения консистентности в художественных текстах.
+
+Улучшения:
+- RapidFuzz для более точного fuzzy matching
+- Нормализация текста перед поиском
+- Три уровня совпадений: exact, fuzzy, suggest
 """
 
 import json
 import os
+import re
+import unicodedata
 from typing import Dict, List, Optional, Tuple
-from difflib import SequenceMatcher
+
+# Используем RapidFuzz для быстрого и точного fuzzy matching
+try:
+    from rapidfuzz import fuzz, process
+    RAPIDFUZZ_AVAILABLE = True
+except ImportError:
+    from difflib import SequenceMatcher
+    RAPIDFUZZ_AVAILABLE = False
+    print("⚠️ RapidFuzz не установлен. Используем стандартный SequenceMatcher (медленнее).")
+
+
+def normalize_text(text: str) -> str:
+    """
+    Нормализовать текст для поиска в TM.
+    - Приводит к нижнему регистру
+    - Удаляет лишние пробелы
+    - Нормализует Unicode
+    - Удаляет пунктуацию для сравнения
+    """
+    text = text.strip().lower()
+    text = unicodedata.normalize('NFKC', text)
+    text = re.sub(r'\s+', ' ', text)  # Нормализуем пробелы
+    return text
+
+
+def normalize_for_comparison(text: str) -> str:
+    """
+    Более агрессивная нормализация для сравнения.
+    Удаляет пунктуацию и лишние символы.
+    """
+    text = normalize_text(text)
+    text = re.sub(r'[^\w\s]', '', text)  # Удаляем пунктуацию
+    return text
 
 
 class TranslationMemory:
     """
     Translation Memory для хранения и поиска ранее переведенных сегментов.
+    Использует RapidFuzz для быстрого и точного fuzzy matching.
     """
+    
+    # Пороги для разных типов совпадений
+    EXACT_THRESHOLD = 0.98      # 98%+ = exact match
+    FUZZY_THRESHOLD = 0.95      # 95%+ = fuzzy match (автоматически использовать)
+    SUGGEST_THRESHOLD = 0.80    # 80-95% = suggest (для ручной проверки)
     
     def __init__(self, tm_file: str = "translation_memory.json"):
         self.tm_file = tm_file
@@ -26,6 +71,7 @@ class TranslationMemory:
                 with open(self.tm_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     self.memory = data.get('segments', [])
+                print(f"✓ TM загружена: {len(self.memory)} сегментов")
             except Exception as e:
                 print(f"Ошибка загрузки TM: {e}")
                 self.memory = []
@@ -60,34 +106,74 @@ class TranslationMemory:
             self.memory.append(entry)
             self.save()
     
-    def search(self, source: str, similarity_threshold: float = 0.95) -> Optional[Tuple[str, float]]:
+    def search(self, source: str, similarity_threshold: float = None) -> Optional[Tuple[str, float, str]]:
         """
-        Найти похожий перевод в TM.
+        Найти похожий перевод в TM с использованием RapidFuzz.
         
         Args:
             source: Исходный текст для поиска
-            similarity_threshold: Минимальный порог схожести (0-1)
+            similarity_threshold: Минимальный порог схожести (по умолчанию FUZZY_THRESHOLD)
             
         Returns:
-            Кортеж (перевод, коэффициент схожести) или None
+            Кортеж (перевод, коэффициент схожести, тип_совпадения) или None
+            тип_совпадения: 'exact', 'fuzzy', 'suggest'
         """
-        source_clean = source.strip().lower()
+        if similarity_threshold is None:
+            similarity_threshold = self.FUZZY_THRESHOLD
+            
+        if not self.memory:
+            return None
+            
+        source_norm = normalize_text(source)
+        source_cmp = normalize_for_comparison(source)
+        
         best_match = None
         best_similarity = 0.0
+        match_type = 'none'
         
         for entry in self.memory:
-            entry_source = entry['source'].strip().lower()
-            similarity = SequenceMatcher(None, source_clean, entry_source).ratio()
+            entry_norm = normalize_text(entry['source'])
+            entry_cmp = normalize_for_comparison(entry['source'])
             
-            if similarity >= similarity_threshold and similarity > best_similarity:
+            # Вычисляем схожесть
+            if RAPIDFUZZ_AVAILABLE:
+                # RapidFuzz возвращает значение 0-100
+                similarity = fuzz.ratio(source_cmp, entry_cmp) / 100.0
+            else:
+                from difflib import SequenceMatcher
+                similarity = SequenceMatcher(None, source_cmp, entry_cmp).ratio()
+            
+            if similarity > best_similarity:
                 best_similarity = similarity
                 best_match = entry['target']
+                
+                # Определяем тип совпадения
+                if similarity >= self.EXACT_THRESHOLD:
+                    match_type = 'exact'
+                elif similarity >= self.FUZZY_THRESHOLD:
+                    match_type = 'fuzzy'
+                elif similarity >= self.SUGGEST_THRESHOLD:
+                    match_type = 'suggest'
+                else:
+                    match_type = 'none'
         
-        if best_match:
-            return (best_match, best_similarity)
+        if best_match and best_similarity >= self.SUGGEST_THRESHOLD:
+            return (best_match, best_similarity, match_type)
         return None
     
-    def fuzzy_search(self, source: str, min_similarity: float = 0.85) -> List[Tuple[str, str, float]]:
+    def find_in_tm(self, source: str) -> Tuple[Optional[str], float, str]:
+        """
+        Найти перевод в TM с возвратом типа совпадения.
+        
+        Returns:
+            (перевод или None, схожесть, тип: 'exact'|'fuzzy'|'suggest'|'none')
+        """
+        result = self.search(source, similarity_threshold=self.SUGGEST_THRESHOLD)
+        if result:
+            return result
+        return (None, 0.0, 'none')
+    
+    def fuzzy_search(self, source: str, min_similarity: float = None) -> List[Tuple[str, str, float, str]]:
         """
         Найти несколько похожих переводов (fuzzy match).
         
@@ -96,17 +182,32 @@ class TranslationMemory:
             min_similarity: Минимальный порог схожести
             
         Returns:
-            Список кортежей (исходный, перевод, схожесть)
+            Список кортежей (исходный, перевод, схожесть, тип)
         """
-        source_clean = source.strip().lower()
+        if min_similarity is None:
+            min_similarity = self.SUGGEST_THRESHOLD
+            
+        source_cmp = normalize_for_comparison(source)
         matches = []
         
         for entry in self.memory:
-            entry_source = entry['source'].strip().lower()
-            similarity = SequenceMatcher(None, source_clean, entry_source).ratio()
+            entry_cmp = normalize_for_comparison(entry['source'])
+            
+            if RAPIDFUZZ_AVAILABLE:
+                similarity = fuzz.ratio(source_cmp, entry_cmp) / 100.0
+            else:
+                from difflib import SequenceMatcher
+                similarity = SequenceMatcher(None, source_cmp, entry_cmp).ratio()
             
             if similarity >= min_similarity:
-                matches.append((entry['source'], entry['target'], similarity))
+                if similarity >= self.EXACT_THRESHOLD:
+                    match_type = 'exact'
+                elif similarity >= self.FUZZY_THRESHOLD:
+                    match_type = 'fuzzy'
+                else:
+                    match_type = 'suggest'
+                    
+                matches.append((entry['source'], entry['target'], similarity, match_type))
         
         # Сортируем по схожести (от большей к меньшей)
         matches.sort(key=lambda x: x[2], reverse=True)

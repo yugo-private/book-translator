@@ -37,9 +37,6 @@ comparison_log.txt
 quality_comparison_report.txt
 llm_comparison_report.txt
 
-# ChatGPT Agent
-chatgpt_recommendations.json
-
 # Temporary files
 *.tmp
 *.bak

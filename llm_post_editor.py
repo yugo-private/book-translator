@@ -14,33 +14,57 @@ class LLMPostEditor:
         raise NotImplementedError
     
     def _create_prompt(self, original_text: str, translated_text: str, glossary: dict = None) -> str:
-        """Создать промпт для пост-редактирования."""
+        """Создать промпт для пост-редактирования детской литературы (7-12 лет)."""
         glossary_text = ""
         if glossary:
-            glossary_items = "\n".join([f"- {k}: {v}" for k, v in glossary.items()])
-            glossary_text = f"\n\nГлоссарий для консистентности:\n{glossary_items}"
+            glossary_items = "\n".join([f"- {k} → {v}" for k, v in glossary.items()])
+            glossary_text = f"\n\n**GLOSSARY (MUST USE EXACTLY):**\n{glossary_items}"
         
-        prompt = f"""You are a professional literary translator specializing in Russian to American English translation. Your task is to post-edit a machine-translated text to make it sound natural, fluent, and native-like.
+        prompt = f"""You are an expert editor of American children's fiction (ages 7-12). Your task is to post-edit a machine-translated Russian children's book to make it sound natural, engaging, and native-like for young American readers.
 
-Guidelines:
-1. Preserve the original meaning and tone
-2. Make the translation sound natural and idiomatic in American English
-3. Maintain the emotional tone and style of the original
-4. Fix any awkward phrasings, literal translations, or grammatical errors
-5. Ensure consistency with the glossary terms provided
-6. Preserve dialogue style and character voice
-7. Keep the narrative flow and pacing
+**TARGET AUDIENCE:** American children ages 7-12
+**STYLE:** Playful, engaging, easy to read, age-appropriate vocabulary
+**READING LEVEL:** Flesch-Kincaid Grade 4-6
 
-Original Russian text:
+**STRICT RULES:**
+1. Use ONLY the glossary terms provided - do not change character names or special terms
+2. Keep sentences SHORT and punchy - break long sentences
+3. Use active voice and action verbs
+4. Make dialogue sound natural for American kids
+5. Preserve the magical/adventure tone
+6. Keep paragraphs short (2-4 sentences)
+7. Use contractions in dialogue ("don't", "can't", "won't")
+8. Avoid complex vocabulary - use simple, vivid words
+
+**EXAMPLES OF GOOD STYLE:**
+- Instead of "The boy was walking slowly" → "Tommy shuffled along"
+- Instead of "She felt very happy" → "Katie's heart leaped"
+- Instead of "It was a beautiful day" → "Sunshine sparkled everywhere"
+
+**ORIGINAL RUSSIAN TEXT:**
 {original_text}
 
-Machine-translated English text:
+**MACHINE TRANSLATION TO IMPROVE:**
 {translated_text}
 {glossary_text}
 
-Please provide the improved, natural-sounding English translation. Return only the translated text without any explanations or comments."""
+**OUTPUT:** Return ONLY the improved English text. No explanations, no comments, no markdown formatting."""
         
         return prompt
+    
+    def _create_system_prompt(self) -> str:
+        """Создать системный промпт для редактора детской литературы."""
+        return """You are an expert editor of American children's fiction (ages 7-12). 
+
+Your expertise includes:
+- Making text engaging and age-appropriate for young readers
+- Creating natural-sounding American English dialogue
+- Maintaining a playful, adventurous tone
+- Using short sentences and vivid descriptions
+- Preserving the magic and wonder of children's stories
+
+You ALWAYS use the exact glossary terms provided - never change character names or special terms.
+You NEVER add explanations or comments - only the edited text."""
 
 
 class GPT4PostEditor(LLMPostEditor):
@@ -59,14 +83,15 @@ class GPT4PostEditor(LLMPostEditor):
             client = OpenAI(api_key=self.api_key, timeout=60.0)
             
             prompt = self._create_prompt(original_text, translated_text, glossary)
+            system_prompt = self._create_system_prompt()
             
             response = client.chat.completions.create(
                 model="gpt-4o",  # Используем GPT-4o для лучшего качества
                 messages=[
-                    {"role": "system", "content": "You are a professional literary translator specializing in Russian to American English translation."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=config.LLM_TEMPERATURE,
+                temperature=0.3,  # Низкая температура для консистентности
                 max_tokens=config.LLM_MAX_TOKENS
             )
             
@@ -90,11 +115,13 @@ class ClaudePostEditor(LLMPostEditor):
             client = Anthropic(api_key=self.api_key)
             
             prompt = self._create_prompt(original_text, translated_text, glossary)
+            system_prompt = self._create_system_prompt()
             
             message = client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=config.LLM_MAX_TOKENS,
-                temperature=config.LLM_TEMPERATURE,
+                temperature=0.3,  # Низкая температура для консистентности
+                system=system_prompt,
                 messages=[
                     {"role": "user", "content": prompt}
                 ]
@@ -125,14 +152,15 @@ class DeepSeekPostEditor(LLMPostEditor):
             )
             
             prompt = self._create_prompt(original_text, translated_text, glossary)
+            system_prompt = self._create_system_prompt()
             
             response = client.chat.completions.create(
                 model="deepseek-chat",
                 messages=[
-                    {"role": "system", "content": "You are a professional literary translator specializing in Russian to American English translation."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=config.LLM_TEMPERATURE,
+                temperature=0.3,  # Низкая температура для консистентности
                 max_tokens=config.LLM_MAX_TOKENS
             )
             
@@ -201,14 +229,15 @@ class GrokPostEditor(LLMPostEditor):
             )
             
             prompt = self._create_prompt(original_text, translated_text, glossary)
+            system_prompt = self._create_system_prompt()
             
             response = client.chat.completions.create(
                 model="grok-beta",  # или "grok-2" в зависимости от доступных моделей
                 messages=[
-                    {"role": "system", "content": "You are a professional literary translator specializing in Russian to American English translation."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=config.LLM_TEMPERATURE,
+                temperature=0.3,  # Низкая температура для консистентности
                 max_tokens=config.LLM_MAX_TOKENS
             )
             
